@@ -1,0 +1,138 @@
+from django.db import models
+from django.conf import settings
+
+# Create your models here.
+class Genre(models.Model):
+    name            = models.CharField(max_length=255)
+    # created_date    = models.DateTimeField(auto_now_add=True)
+    # updated_date    = models.DateTimeField(auto_now=True)
+    # status          = models.BooleanField(default=False)
+    # image           = models.ImageField(upload_to=genre_image_directory_path,null=True,blank=True,validators=[validate_image_file_extension])
+    # is_onboard      = models.BooleanField(default=False)
+    # _var = models.BooleanField(default=False)
+
+    # class Meta:
+
+    #     db_table = '{0}_{1}'.format(settings.DB_TABLE_PREFIX,'Genre')
+
+    #     permissions = (
+    #             ('view_genre', 'Can view  Genre'),
+    #         )
+    
+    def __str__(self):
+        return self.name
+
+#already an app
+
+class Language(models.Model):
+    name            = models.CharField(max_length=255)
+    # created_date    = models.DateTimeField(auto_now_add=True)
+    # updated_date    = models.DateTimeField(auto_now=True)
+    # status          = models.BooleanField(default=False)
+    # image           = models.ImageField(upload_to=language_image_directory_path,null=True,blank=True,validators=[validate_image_file_extension])
+    # is_onboard      = models.BooleanField(default=False)
+    # class Meta:
+
+    #     db_table = '{0}_{1}'.format(settings.DB_TABLE_PREFIX,'Language')
+
+    #     permissions = (
+    #             ('view_language', 'Can view Language'),
+    #         )
+
+    def __str__(self):
+        return self.name
+
+class Business(models.Model):
+    BUSINESS_CHOICES = (
+        ('agency', 'Advertising/Media Agency'),
+        ('organizer', 'Event Organizer'),
+        ('label','Label'),
+        ('music_company', 'Music Company'),
+        ('tv_channel', 'TV Channel'),
+        ('radio_station', 'Radio Station'),
+        ('publication', 'Publication'),
+        ('streaming_app', 'Streaming App'),
+        ('series_producer', 'TV/ Web Series Producer'),
+        ('film_producer','Film Producer'),
+        ('artist_manager', 'Artist Manager'),
+        ('college', 'College'),
+        ('corporate_body', 'COrporate Body'),
+        ('recording_studio','Recording Studio'),
+        ('other', 'Other'),
+    )
+    name = models.CharField(max_length=255, choices=BUSINESS_CHOICES, default="other")
+    other = models.CharField(max_length=500, null=True, blank=True)
+
+
+
+class Lead(models.Model):
+
+    ACTIVITY = (
+        ('record_deals', 'Record Deals'),
+        ('artist_management', 'Artist Management'),
+        ('talent_contest', 'Talent Contest'),
+        ('music_production', 'Music Production'),
+        ('influencer_marketing', 'Influencer Marketing'),
+        ('collaboration', 'Collaboration'),
+        ('retail_outlets', 'Licensing For Retail Outlets'),
+        ('series_or_film', 'Licensing For Series Or Film'),
+        ('radio_or_platforms', 'Radio Or Platforms'),
+        ('gigs', 'Book Artists/Bands For Gigs'),
+        ('broadcast', 'Music Videos For Broadcast'),
+    )
+
+    PARTNER_TYPES = (
+        ("college", "College"),
+        ("organization", "Organization"),
+        ("individual", "Individual"),
+        ("other", "Other")
+    )
+
+    CHOICES = (
+        ('agency', 'Advertising/Media Agency'),
+        ('organizer', 'Event Organizer'),
+        ('label','Label'),
+        ('music_company', 'Music Company'),
+        ('tv_channel', 'TV Channel'),
+        ('radio_station', 'Radio Station'),
+        ('publication', 'Publication'),
+        ('streaming_app', 'Streaming App'),
+        ('series_producer', 'TV/ Web Series Producer'),
+        ('film_producer','Film Producer'),
+        ('artist_manager', 'Artist Manager'),
+        ('college', 'College'),
+        ('corporate_body', 'COrporate Body'),
+        ('recording_studio','Recording Studio'),
+        ('other', 'Other'),
+    )
+
+    COLLEGE_ACTIVITIES = (
+        ("music_contest", "Music Contest"),
+        ("college_festival", "College Festival"),
+    )
+
+    BUDGETS = (
+        ("upto_one_lac", "Upto Rs 1 L"),
+        ("one_to_two_lac", "Rs 1L - 2L"),
+        ("two_to_four_lac", "Rs 2L- 4L"),
+        ("more_than_four_lac", "Rs 4L +"),
+    )
+
+    activity                = models.CharField(choices=ACTIVITY, max_length=100, null=True, blank=True)
+    partner_type            = models.CharField(max_length=50, choices=PARTNER_TYPES)
+    city                    = models.CharField(max_length=50)
+    genre_id                = models.ManyToManyField(Genre)
+    language_id             = models.ManyToManyField(Language) 
+    college                 = models.CharField(max_length=50, blank=True, null=True) #if partner type college
+    college_activity        = models.CharField(max_length = 50, choices=COLLEGE_ACTIVITIES, null=True, blank=True) #if partner type college
+    budget                  = models.CharField(choices=BUDGETS, max_length = 20, null=True, blank=True)
+    event_title             = models.CharField(max_length=100)
+    date_of_event           = models.DateTimeField(null=True, blank=True)
+    prizes                  = models.CharField(max_length=500, null=True, blank=True)
+    org_name                = models.CharField(max_length=100, null=True, blank=True)
+    business_id             = models.ManyToManyField(Business) #if partner business
+    created_date            = models.DateTimeField(auto_now_add=True)
+    updated_date            = models.DateTimeField(auto_now=True)   
+    status                  = models.BooleanField(default=True) # This is for soft-delete
+#already an app
+
