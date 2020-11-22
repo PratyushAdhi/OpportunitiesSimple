@@ -1,5 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_save, pre_delete, post_delete
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from evaluations.models import Evaluation
+
 
 # Create your models here.
 class Genre(models.Model):
@@ -22,10 +27,41 @@ class Genre(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
 #already an app
 
 class Language(models.Model):
-    name            = models.CharField(max_length=255)
+
+
+    LANGUAGES = (
+        ("assamese","Assamese"),
+        ("bengali", "Bengali"),
+        ("bodo", "Bodo"),
+        ("dogri", "Dogri"),
+        ("gujrati","Gujarati"),
+        ("hindi", "Hindi"),
+        ("kannada", "Kannada"),
+        ("kashmiri", "Kashmiri"),
+        ("konkani", "Konkani"),
+        ("malayalam", "Malayalam"),
+        ("manipuri", "Manipuri"),
+        ("marathi","Marathi"),
+        ("maithili", "Maithili"),
+        ("nepali", "Nepali"),
+        ("oriya","Oriya"),
+        ("punjabi","Punjabi"),
+        ("sanskrit","Sanskrit"),
+        ("santhali","Santhali"),
+        ("sindhi","Sindhi"),
+        ("tamil","Tamil"),
+        ("telugu", "Telugu"),
+        ("urdu","Urdu"),
+    )
+
+
+    name            = models.CharField(max_length=255, choices=LANGUAGES)
     # created_date    = models.DateTimeField(auto_now_add=True)
     # updated_date    = models.DateTimeField(auto_now=True)
     # status          = models.BooleanField(default=False)
@@ -42,6 +78,10 @@ class Language(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+
 class Business(models.Model):
     BUSINESS_CHOICES = (
         ('agency', 'Advertising/Media Agency'),
@@ -56,13 +96,20 @@ class Business(models.Model):
         ('film_producer','Film Producer'),
         ('artist_manager', 'Artist Manager'),
         ('college', 'College'),
-        ('corporate_body', 'COrporate Body'),
+        ('corporate_body', 'Corporate Body'),
         ('recording_studio','Recording Studio'),
         ('other', 'Other'),
     )
-    name = models.CharField(max_length=255, choices=BUSINESS_CHOICES, default="other")
-    other = models.CharField(max_length=500, null=True, blank=True)
+    name            = models.CharField(max_length=255, choices=BUSINESS_CHOICES, default="other")
+    other           = models.CharField(max_length=500, null=True, blank=True)
 
+    def __str__(self):
+        if self.name == "other":
+            return self.other
+        return self.name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class Lead(models.Model):
@@ -86,6 +133,13 @@ class Lead(models.Model):
         ("organization", "Organization"),
         ("individual", "Individual"),
         ("other", "Other")
+    )
+
+    COLLEGE_MUSIC_CONTEST = (
+        ("band_battle_hindi", "Battle Of Bands (Hindi)"),
+        ("band_battle_english", "Battle Of Bands (English)"),
+        ("solo_singing", "Solo Singing Contest"),
+        ("others", "Others"),
     )
 
     CHOICES = (
@@ -118,21 +172,65 @@ class Lead(models.Model):
         ("more_than_four_lac", "Rs 4L +"),
     )
 
+    PENDING_STATUS = (
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("second_review", "Second Review"),
+        ("clarification", "Clarification Sought"),
+        ("rejected", "Rejected"),
+    )
+
+    name                    = models.CharField(max_length=120, null=True, blank=True)
+    email                   = models.EmailField(blank=True, null=True)
+    phone_no                = models.BigIntegerField(blank=True, null=True)
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, default=1, blank=True)
     activity                = models.CharField(choices=ACTIVITY, max_length=100, null=True, blank=True)
-    partner_type            = models.CharField(max_length=50, choices=PARTNER_TYPES)
-    city                    = models.CharField(max_length=50)
+    partner_type            = models.CharField(max_length=50, choices=PARTNER_TYPES, null=True, blank=True)
+    city                    = models.CharField(max_length=50, null=True, blank=True)
     genre_id                = models.ManyToManyField(Genre)
     language_id             = models.ManyToManyField(Language) 
-    college                 = models.CharField(max_length=50, blank=True, null=True) #if partner type college
+    college_name            = models.CharField(max_length=50, blank=True, null=True) #if partner type college
     college_activity        = models.CharField(max_length = 50, choices=COLLEGE_ACTIVITIES, null=True, blank=True) #if partner type college
     budget                  = models.CharField(choices=BUDGETS, max_length = 20, null=True, blank=True)
-    event_title             = models.CharField(max_length=100)
+    event_title             = models.CharField(max_length=100, null=True, blank=True)
+    college_music_contest   = models.CharField(max_length=120, choices=COLLEGE_MUSIC_CONTEST, null=True, blank=True)
     date_of_event           = models.DateTimeField(null=True, blank=True)
     prizes                  = models.CharField(max_length=500, null=True, blank=True)
     org_name                = models.CharField(max_length=100, null=True, blank=True)
     business_id             = models.ManyToManyField(Business) #if partner business
     created_date            = models.DateTimeField(auto_now_add=True)
     updated_date            = models.DateTimeField(auto_now=True)   
-    status                  = models.BooleanField(default=True) # This is for soft-delete
+    pending_status          = models.CharField(choices=PENDING_STATUS, max_length=100, default="pending")
+    status                  = models.BooleanField(default=False) # This is for soft-delete
+    other                   = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.event_title
 #already an app
+
+
+
+    #admin decisions
+    def save(self, *args, **kwargs):
+        if not self.id:
+            super(Lead, self).save(*args, **kwargs)
+            eval = Evaluation.objects.create(lead=self)
+            self.evaluator = eval.first_eval.username
+            return 
+        super(Lead, self).save(*args, **kwargs)
+
+
+
+
+@receiver(post_save, sender=Evaluation)
+def update_lead_status(sender, instance, created, **kwargs):
+    post_save.disconnect(update_lead_status, sender=sender)
+    instance.lead.pending_status = instance.decision
+    instance.lead.save()
+    post_save.connect(update_lead_status, sender=sender)
+
+@receiver(pre_delete, sender=Evaluation)
+def eval_deleted(sender, instance, **kwargs):
+    instance.lead.pending_status = "rejected"
+    instance.lead.save()
 

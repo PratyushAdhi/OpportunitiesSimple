@@ -1,20 +1,36 @@
-from rest_framework import viewsets
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from ..models import Language, Lead, Business, Genre
 from .serializers import LeadSerializer, LanguageSerializer, BusinessSerializer, GenreSerializer
+from .permissions import IsAuthorOrStaff
 
 #Lead Views
 class LeadCreateAPIView(CreateAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user:
+            serializer.save(user=user)
+        else:
+            serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.save(partial=True)
+        
 class LeadListAPIView(ListAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Lead.objects.all()
+        return Lead.objects.filter(user=self.request.user)
+
 class LeadRUDAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
+    permissions_classes = (IsAuthorOrStaff,)
 
 #Language views
 class LanguageCreateAPIView(CreateAPIView):
