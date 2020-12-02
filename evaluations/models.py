@@ -1,12 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from mails.models import Mail
 from details.models import Detail
 from django.conf import settings
 from django.utils.html import format_html
-
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 # Create your models here.
 
@@ -62,8 +61,8 @@ class Evaluation(models.Model):
             )
         super(Evaluation, self).save(*args, **kwargs)
 
-    def __str__(self):
-        return self.lead.event_title
+    # def __str__(self):
+    #     return self.lead.event_title
 
 @receiver(post_save, sender=Evaluation)
 def lead_accepted_create_detail_form(sender, instance, created, **kwargs):
@@ -106,7 +105,7 @@ def lead_accepted_create_detail_form(sender, instance, created, **kwargs):
                 Detail.objects.get(lead=lead)
                 return 
             except:
-                print("here")
+                print("here one")
                 print(instance.lead.user)
                 detail = Detail.objects.create(
                     lead=instance.lead,
@@ -122,8 +121,10 @@ def lead_accepted_create_detail_form(sender, instance, created, **kwargs):
                     is_verified=True,
                     is_published=True
                     )
+                print("check2")
                 detail.language_id.add(*instance.lead.language_id.all())
                 detail.genre_id.add(*instance.lead.genre_id.all())
+                print("check1")
                 detail_form_url = settings.BASE_URL + "details/" + str(detail.id) + "/"
                 send_mail(
                     "Detail Form",
@@ -131,9 +132,7 @@ def lead_accepted_create_detail_form(sender, instance, created, **kwargs):
                     settings.EMAIL_HOST_USER,
                     [instance.lead.user.email, instance.lead.email],
                 )
-                return
-
-    return
+                print("mail-sent")
     
 
 

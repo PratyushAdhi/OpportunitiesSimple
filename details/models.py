@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.contrib.auth.models import User 
 
 # Create your models here.
 class Contact(models.Model):
@@ -8,7 +9,7 @@ class Contact(models.Model):
     phone_no            = models.BigIntegerField()
 
     def __str__(self):
-        return self.email
+        return str(self.email)
 
 class Detail(models.Model):
 
@@ -77,17 +78,17 @@ class Detail(models.Model):
         ("yearly", "Yearly"),
     )
 
-    user                    = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, default=4)
     lead                    = models.ForeignKey("leads.Lead", on_delete=models.CASCADE)
     event_title             = models.CharField(max_length=120, null=True, blank=True)
     partner_type            = models.CharField(max_length=120, null=True, blank=True)
     college_name            = models.CharField(max_length=120, blank=True, null=True)
     logo                    = models.FileField(upload_to="logos/", null=True, blank=True)
     about                   = models.TextField(null=True, blank=True)
-    website_url             = models.URLField(null=True, blank=True)
-    facebook_url            = models.URLField(null=True, blank=True)
-    twitter_url             = models.URLField(null=True, blank=True)
-    instagram_url           = models.URLField(null=True, blank=True)
+    website_url             = models.CharField(max_length=200, null=True, blank=True)
+    facebook_url            = models.CharField(max_length=200, null=True, blank=True)
+    twitter_url             = models.CharField(max_length=200, null=True, blank=True)
+    instagram_url           = models.CharField(max_length=200, null=True, blank=True)
     youtube_url             = models.URLField(null=True, blank=True)
     contact_1               = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True, related_name="contact_1_detail")
     contact_2               = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True, related_name="contact_2_detail")
@@ -97,19 +98,25 @@ class Detail(models.Model):
     if_recurring            = models.BooleanField(default=False)
     recurring_frequency     = models.CharField(max_length=120, choices=FREQUENCY, blank=True, null=True)
     city                    = models.CharField(max_length=120, null=True, blank=True)
+    event_city              = models.CharField(max_length=120, null=True, blank=True)
     college_activity        = models.CharField(max_length=120,null=True, blank=True)
     date_of_event           = models.DateField(null=True, blank=True)
     college_music_contest   = models.CharField(max_length=120, choices=COLLEGE_MUSIC_CONTEST, null=True, blank=True)
     prizes                  = models.CharField(max_length=500, null=True, blank=True)
-    genre_id                = models.ManyToManyField('leads.Genre', related_name="details")
-    language_id             = models.ManyToManyField('leads.Language', related_name="details")
+    genre_id                = models.ManyToManyField('leads.Genre', blank=True, related_name="details")
+    language_id             = models.ManyToManyField('leads.Language',blank=True ,related_name="details")
     budget                  = models.CharField(choices=BUDGETS, max_length=120, null=True, blank=True)
     other                   = models.TextField(null=True, blank=True)
     is_verified             = models.BooleanField(default=False)
     is_published            = models.BooleanField(default=False)
 
+    # def __str__(self):
+    #     return self.lead.event_title
+
     def __str__(self):
-        return self.lead.event_title
+        return self.event_title or "-"
+
+        
         
 
 

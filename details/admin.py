@@ -5,8 +5,11 @@ admin.site.register(Contact)
 class DetailAdmin(admin.ModelAdmin):
     model = Detail
 
+    def get_title(self, obj):
+        return obj.event_title or "-"
+
     def get_lead(self, obj):
-        return obj.lead
+        return obj.lead.event_title or "-"
 
     get_lead.short_description = "lead"
 
@@ -28,7 +31,7 @@ class DetailAdmin(admin.ModelAdmin):
     get_is_published.boolean = True
 
 
-    list_display = ["get_lead", "get_event_date", "get_is_verified", "get_is_published"]
+    list_display = ["get_title","get_lead", "get_event_date", "get_is_verified", "get_is_published"]
     list_filter = ["date_of_event", "genre_id", "language_id"]
 
 admin.site.register(Detail, DetailAdmin)

@@ -92,8 +92,8 @@ class DetailSerializer(serializers.ModelSerializer):
 
         validated_data.pop("genre_id")
 
-        contact_1 = validated_data.pop("contact_1")
-        if contact_1:
+        contact_1 = validated_data.pop("contact_1", None)
+        if contact_1 is not None:
             if instance.contact_1 is not None:
                 instance.contact_1.name = contact_1["name"]
                 instance.contact_1.email = contact_1["email"]
@@ -102,9 +102,10 @@ class DetailSerializer(serializers.ModelSerializer):
                 instance.contact_1 = Contact.objects.create(**contact_1)
 
 
-        contact_2 = validated_data.pop("contact_2")
-        if contact_2:
+        contact_2 = validated_data.pop("contact_2", None)
+        if contact_2 is not None:
             if instance.contact_2 is not None:
+                print(contact_2["name"])
                 instance.contact_2.name = contact_2["name"]
                 instance.contact_2.email = contact_2["email"]
                 instance.contact_2.phone_no = contact_2["phone_no"]

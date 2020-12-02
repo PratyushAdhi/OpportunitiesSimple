@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
+from django.conf import settings
 from django.contrib.auth.models import User
 from evaluations.models import Evaluation
 
@@ -172,6 +173,12 @@ class Lead(models.Model):
         ("more_than_four_lac", "Rs 4L +"),
     )
 
+    GIGS = (
+        ("corporate_gig", "Corporate Gig"),
+        ("festival", "Festival"),
+        ("private_function", "Private Function")
+    )
+
     PENDING_STATUS = (
         ("pending", "Pending"),
         ("accepted", "Accepted"),
@@ -180,32 +187,37 @@ class Lead(models.Model):
         ("rejected", "Rejected"),
     )
 
-    name                    = models.CharField(max_length=120, null=True, blank=True)
-    email                   = models.EmailField(blank=True, null=True)
-    phone_no                = models.BigIntegerField(blank=True, null=True)
-    user                    = models.ForeignKey(User, on_delete=models.CASCADE, default=1, blank=True)
-    activity                = models.CharField(choices=ACTIVITY, max_length=100, null=True, blank=True)
-    partner_type            = models.CharField(max_length=50, choices=PARTNER_TYPES, null=True, blank=True)
-    city                    = models.CharField(max_length=50, null=True, blank=True)
-    genre_id                = models.ManyToManyField(Genre)
-    language_id             = models.ManyToManyField(Language) 
-    college_name            = models.CharField(max_length=50, blank=True, null=True) #if partner type college
-    college_activity        = models.CharField(max_length = 50, choices=COLLEGE_ACTIVITIES, null=True, blank=True) #if partner type college
-    budget                  = models.CharField(choices=BUDGETS, max_length = 20, null=True, blank=True)
-    event_title             = models.CharField(max_length=100, null=True, blank=True)
-    college_music_contest   = models.CharField(max_length=120, choices=COLLEGE_MUSIC_CONTEST, null=True, blank=True)
-    date_of_event           = models.DateTimeField(null=True, blank=True)
-    prizes                  = models.CharField(max_length=500, null=True, blank=True)
-    org_name                = models.CharField(max_length=100, null=True, blank=True)
-    business_id             = models.ManyToManyField(Business) #if partner business
+    name                    = models.CharField(max_length=120, null=True, blank=True, verbose_name="name")
+    email                   = models.EmailField(blank=True, null=True, verbose_name="email")
+    phone_no                = models.BigIntegerField(blank=True, null=True, verbose_name="Phone Number")
+    city                    = models.CharField(max_length=50, null=True, blank=True, verbose_name="City Of Partner")
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, default=4, blank=True, verbose_name="User")
+    partner_type            = models.CharField(max_length=50, choices=PARTNER_TYPES, null=True, blank=True, verbose_name="Partner Type")
+    activity                = models.CharField(choices=ACTIVITY, max_length=100, null=True, blank=True, verbose_name="Activity For Which You Would Like To Work With Songdew")
+    gigs                    = models.CharField(max_length=120, choices=GIGS, null=True, blank=True, verbose_name="Type Of Gigs")
+    event_title             = models.CharField(max_length=120, null=True, blank=True, verbose_name="Name Of Event/Opportunity")
+    event_city              = models.CharField(max_length=120, null=True, blank=True, verbose_name="City Of Event/Gig")
+    business_id             = models.ManyToManyField(Business, blank=True, null=True, verbose_name="Businesses") #if partner business
+    language_id             = models.ManyToManyField(Language, blank=True, verbose_name="Language Of Gig/Music Event") 
+    genre_id                = models.ManyToManyField(Genre, blank=True, verbose_name="Genres")
+    college_name            = models.CharField(max_length=50, blank=True, null=True, verbose_name="Name Of College (for college)") #if partner type college
+    college_activity        = models.CharField(max_length = 50, choices=COLLEGE_ACTIVITIES, null=True, blank=True, verbose_name="College Activity") #if partner type college
+    budget                  = models.CharField(choices=BUDGETS, max_length = 20, null=True, blank=True, verbose_name="Budget")
+    college_music_contest   = models.CharField(max_length=120, choices=COLLEGE_MUSIC_CONTEST, null=True, blank=True, verbose_name="College Music Contest")
+    date_of_event           = models.DateTimeField(null=True, blank=True, verbose_name="Date Of Event/Opportunity")
+    prizes                  = models.CharField(max_length=500, null=True, blank=True, verbose_name="Prizes")
+    org_name                = models.CharField(max_length=100, null=True, blank=True, verbose_name="Name Of Organization")
     created_date            = models.DateTimeField(auto_now_add=True)
     updated_date            = models.DateTimeField(auto_now=True)   
     pending_status          = models.CharField(choices=PENDING_STATUS, max_length=100, default="pending")
     status                  = models.BooleanField(default=False) # This is for soft-delete
     other                   = models.TextField(null=True, blank=True)
 
-    def __str__(self):
-        return self.event_title
+
+    # def __str__(self):
+    #     if not self.event_title:
+    #         return self.name
+    #     return self.event_title
 #already an app
 
 

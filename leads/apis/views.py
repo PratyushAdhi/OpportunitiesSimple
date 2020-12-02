@@ -2,6 +2,8 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDe
 from ..models import Language, Lead, Business, Genre
 from .serializers import LeadSerializer, LanguageSerializer, BusinessSerializer, GenreSerializer
 from .permissions import IsAuthorOrStaff
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 
 #Lead Views
 class LeadCreateAPIView(CreateAPIView):
@@ -10,7 +12,7 @@ class LeadCreateAPIView(CreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user:
+        if user.is_authenticated:
             serializer.save(user=user)
         else:
             serializer.save()
@@ -23,9 +25,11 @@ class LeadListAPIView(ListAPIView):
     serializer_class = LeadSerializer
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Lead.objects.all()
-        return Lead.objects.filter(user=self.request.user)
+        # if self.request.user.is_staff:
+        #     return Lead.objects.all()
+        # return Lead.objects.filter(user=self.request.user)
+        return Lead.objects.all()
+
 
 class LeadRUDAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Lead.objects.all()

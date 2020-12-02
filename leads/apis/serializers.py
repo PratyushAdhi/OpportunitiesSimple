@@ -21,9 +21,10 @@ class BusinessSerializer(serializers.ModelSerializer):
 
 class LeadSerializer(serializers.ModelSerializer):
     # id = serializers.IntegerField(required=False)
-    language_id = LanguageSerializer(many=True)
-    genre_id = GenreSerializer(many=True)
-    business_id = BusinessSerializer(many=True)
+    language_id = LanguageSerializer(many=True, required=False)
+    genre_id = GenreSerializer(many=True, required=False)
+    business_id = BusinessSerializer(many=True, required=False)
+
 
     class Meta:
         model = Lead
@@ -33,41 +34,49 @@ class LeadSerializer(serializers.ModelSerializer):
                 "read_only": True
             },
             'id': {'validators': []},
+            "pending_status": {
+                "read_only": True
+            },
         }
 
 
     def create(self, validated_data):
-        language_data = validated_data.pop("language_id")
-        genre_data = validated_data.pop("genre_id")
-        business_data = validated_data.pop("business_id")
+        language_data = validated_data.pop("language_id", None)
+        genre_data = validated_data.pop("genre_id", None)
+        business_data = validated_data.pop("business_id", None)
 
         languages = []
         genres = []
         businesses = []
         lead = Lead.objects.create(**validated_data)
+        if language_data is not None:
+            for language in language_data:
+                try:
+                    language_obj = Language.objects.get(name=language["name"])
+                except:
+                    language_obj = Language.objects.create(**language)
+                lead.language_id.add(language_obj)
 
-        for language in language_data:
-            try:
-                language_obj = Language.objects.get(name=language["name"])
-            except:
-                language_obj = Language.objects.create(**language)
-            lead.language_id.add(language_obj)
+        if genre_data is not None:
 
-        for genre in genre_data:
-            try:
-                genre_obj = Genre.objects.get(name=genre["name"])
-            except:
-                genre_obj = Genre.objects.create(**genre)
-            lead.genre_id.add(genre_obj)
+            for genre in genre_data:
+                try:
+                    genre_obj = Genre.objects.get(name=genre["name"])
+                except:
+                    genre_obj = Genre.objects.create(**genre)
+                lead.genre_id.add(genre_obj)
 
-
-        for business in business_data:
-            try:
-                business_obj = Business.objects.filter(name=business["name"])
-                business_obj = business_obj.filter(other=business["other"])
-            except:
-                business_obj = Business.objects.create(**business)
-            lead.business_id.add(business_obj)
+        if business_data is not None:
+            for business in business_data:
+                try:
+                    print("ok")
+                    business_obj = Business.objects.filter(name=business["name"])
+                    print("ok2")
+                    business_obj = business_obj.filter(other=business["other"])
+                    print("okay")
+                except:
+                    business_obj = Business.objects.create(**business)
+                lead.business_id.add(business_obj)
 
         return lead
 

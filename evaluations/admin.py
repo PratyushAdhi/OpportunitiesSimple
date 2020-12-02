@@ -104,7 +104,7 @@ class EvaluationAdmin(admin.ModelAdmin):
     get_updated_date.short_description = "last update"
 
     def get_lead(self, obj):
-        return obj.lead
+        return obj.lead.event_title or "-"
 
     get_lead.short_description = "lead"
 
